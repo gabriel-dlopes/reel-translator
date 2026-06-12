@@ -78,7 +78,7 @@ cd reel-translator
 Create a virtual environment:
 
 ```bash
-python3.12 -m venv .venv
+python3 -m venv .venv
 ```
 
 Activate the virtual environment:
@@ -90,7 +90,7 @@ source .venv/bin/activate
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## Configuration
@@ -148,4 +148,3 @@ Implementation should follow these principles:
 - Logging for pipeline progress and service-level events
 - Dependency injection for testability and future extension
 - Clear separation between configuration, models, services, utilities, and orchestration
-
