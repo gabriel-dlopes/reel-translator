@@ -19,6 +19,8 @@ class AudioExtractor:
 
         # Creating final audio_path with the output directory and file name
         audio_path = self.output_directory / f"{video_path.stem}.mp3" 
+
+        # Runnig ther command to extract the audio
         subprocess.run(
             [
                 "ffmpeg", # The executable
