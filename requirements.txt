@@ -1,3 +1,4 @@
 yt-dlp
 python-dotenv
 pytest
+faster-whisper
