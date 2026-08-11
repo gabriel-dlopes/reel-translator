@@ -3,3 +3,4 @@ python-dotenv
 pytest
 faster-whisper
 requests
+fpdf2

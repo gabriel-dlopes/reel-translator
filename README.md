@@ -1,74 +1,34 @@
 # Reel Translator
 
-Local Python CLI application for processing an Instagram Reel URL into a Portuguese (Portugal) translation report.
+Local CLI application that receives an Instagram Reel URL and generates a Portuguese report as a PDF.
 
-The planned workflow is:
+The application downloads the Reel, extracts its audio, transcribes it locally, translates the transcript with a local LLM, generates report content, and writes a PDF report.
 
-1. Download the Instagram Reel.
-2. Extract the audio from the downloaded video.
-3. Transcribe the audio.
-4. Translate the transcript to Portuguese (Portugal).
-5. Generate a summary and explanation.
-6. Create a PDF report.
-
-## Project Status
-
-This repository is scaffolded for future implementation. The architecture is intended to use clear object-oriented service boundaries and dependency injection through a central pipeline class.
-
-## Planned Architecture
+## Current Workflow
 
 ```text
-reel-translator/
-├── README.md
-├── requirements.txt
-├── .env.example
-├── .gitignore
-├── main.py
-├── src/
-│   ├── config.py
-│   ├── pipeline.py
-│   ├── models/
-│   ├── services/
-│   └── utils/
-├── data/
-│   ├── input/
-│   ├── audio/
-│   ├── transcripts/
-│   └── output/
-└── tests/
+Instagram Reel URL
+-> Download video with yt-dlp
+-> Extract audio with FFmpeg
+-> Transcribe audio locally with faster-whisper
+-> Translate and analyse text with Ollama
+-> Generate a PDF report with fpdf2
 ```
 
-## Planned Service Classes
-
-The application is expected to use the following service classes:
-
-- `ReelDownloader`: downloads Instagram Reels using `yt-dlp`.
-- `AudioExtractor`: extracts audio from downloaded video files using `moviepy` and `ffmpeg`.
-- `Transcriber`: transcribes audio using OpenAI APIs.
-- `Translator`: translates transcripts to Portuguese (Portugal) using OpenAI APIs.
-- `Summarizer`: generates a summary and explanation using OpenAI APIs.
-- `PDFGenerator`: creates a final PDF report using `fpdf2`.
-
-The `ReelTranslationPipeline` class will orchestrate these services using dependency injection.
+Only the Reel download requires internet access. Transcription, translation, summarisation, and PDF generation run locally after the media file has been downloaded.
 
 ## Requirements
 
-- Python 3.12 or newer
-- `ffmpeg` installed and available on your system path
-- OpenAI API key
+- Python 3.12+
+- FFmpeg
+- Ollama
+- An Ollama model, currently `qwen2.5:14b`
 
-Planned Python dependencies:
-
-- `yt-dlp`
-- `moviepy`
-- `openai`
-- `fpdf2`
-- `python-dotenv`
-- `pytest`
+Python dependencies are listed in `requirements.txt`.
 
 ## Installation
 
-Clone the repository and enter the project directory:
+Clone the repository:
 
 ```bash
 git clone <repository-url>
@@ -81,70 +41,158 @@ Create a virtual environment:
 python3 -m venv .venv
 ```
 
+Activate it:
+
+```bash
+source .venv/bin/activate
+```
+
+Install Python dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Install FFmpeg on macOS:
+
+```bash
+brew install ffmpeg
+```
+
+Check FFmpeg:
+
+```bash
+ffmpeg -version
+```
+
+Install Ollama:
+
+```bash
+brew install ollama
+```
+
+Start Ollama in a separate terminal:
+
+```bash
+ollama serve
+```
+
+Pull the local LLM model:
+
+```bash
+ollama pull qwen2.5:14b
+```
+
+Check that Ollama can see the model:
+
+```bash
+ollama list
+```
+
+## Usage
+
 Activate the virtual environment:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Install dependencies:
+Make sure Ollama is running:
 
 ```bash
-python -m pip install -r requirements.txt
+ollama serve
 ```
 
-## Configuration
-
-Create a local environment file from the example:
+In another terminal, run the application:
 
 ```bash
-cp .env.example .env
+python main.py "https://www.instagram.com/reel/REEL_ID/"
 ```
 
-Add your OpenAI API key:
+Use quotes around the URL. Instagram URLs often contain characters such as `?` and `&`, which shells may interpret incorrectly if the URL is not quoted.
+
+The generated files are written to:
 
 ```text
-OPENAI_API_KEY=your_api_key_here
+data/input/        downloaded video files
+data/audio/        extracted audio files
+data/transcripts/  generated transcript files
+data/output/       generated PDF reports
 ```
 
-The `.env` file should not be committed to version control.
-
-## Usage
-
-After implementation, the CLI is expected to run with:
-
-```bash
-python main.py "https://www.instagram.com/reel/..."
-```
-
-The expected output will be a PDF report written to:
+The final report is currently written to:
 
 ```text
-data/output/
+data/output/reel_report.pdf
 ```
 
-Intermediate files should be stored in:
+## Troubleshooting
 
-- `data/input/` for downloaded video files
-- `data/audio/` for extracted audio
-- `data/transcripts/` for transcript artifacts
-- `data/output/` for final reports
+If `yt-dlp` fails on an accessible public Reel, update it:
+
+```bash
+python -m pip install --upgrade yt-dlp
+```
+
+If Ollama is not reachable, start the server:
+
+```bash
+ollama serve
+```
+
+If the model is missing:
+
+```bash
+ollama pull qwen2.5:14b
+```
+
+If the shell rejects the Reel URL, wrap it in quotes:
+
+```bash
+python main.py "https://www.instagram.com/reel/REEL_ID/"
+```
 
 ## Testing
 
-After implementation, run tests with:
+Run the test suite with:
 
 ```bash
-pytest
+python -m pytest -v
 ```
 
-## Development Notes
+Run a single test file:
 
-Implementation should follow these principles:
+```bash
+python -m pytest tests/test_reel_downloader.py -v
+```
 
-- Python 3.12+
-- Type hints throughout
-- Dataclasses where appropriate
-- Logging for pipeline progress and service-level events
-- Dependency injection for testability and future extension
-- Clear separation between configuration, models, services, utilities, and orchestration
+## Project Structure
+
+```text
+.
+├── main.py
+├── requirements.txt
+├── src/
+│   ├── services/
+│   │   ├── audio_extractor.py
+│   │   ├── llm_client.py
+│   │   ├── pdf_generator.py
+│   │   ├── reel_downloader.py
+│   │   ├── report.py
+│   │   └── transcriber.py
+│   ├── config.py
+│   └── pipeline.py
+├── data/
+│   ├── input/
+│   ├── audio/
+│   ├── transcripts/
+│   ├── translations/
+│   └── output/
+└── tests/
+```
+
+## Notes
+
+Generated media, transcript, translation, and PDF files are ignored by Git.
+
+Some Instagram Reels may require authentication or cookies. The current version is intended for public Reels.

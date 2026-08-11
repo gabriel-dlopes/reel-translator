@@ -5,6 +5,7 @@ from src.services.reel_downloader import ReelDownloader
 from src.services.audio_extractor import AudioExtractor
 from src.services.transcriber import Transcriber
 from src.services.llm_client import LocalLLMClient, Translator, Summarizer
+from src.services.pdf_generator import PDFGenerator
 
 
 def main() -> None: # O "-> None" means that the function only execute functions, it doesnt return
@@ -48,7 +49,13 @@ def main() -> None: # O "-> None" means that the function only execute functions
         translated_text=translated_text,
     )
 
-    print(f"Summarized text: {report_content}")
+    print(f"Report content created: {report_content.title}")
+
+    # Generate PDF report
+    pdf_generator = PDFGenerator(Path("data/output"))
+    pdf_path = pdf_generator.generate(report_content)
+
+    print(f"PDF report created at: {pdf_path}")
 
 
 if __name__ == "__main__":
