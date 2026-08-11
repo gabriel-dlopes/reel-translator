@@ -1,5 +1,6 @@
 import requests
 from pathlib import Path
+from src.services.report import ReportContent
 
 class LocalLLMClient:
     def __init__(
@@ -50,15 +51,57 @@ class Translator:
 class Summarizer:
     # Initiate the summarizer object
     def __init__(self, llm_client: LocalLLMClient) -> None:
-            self.llm_client = llm_client
+        self.llm_client = llm_client
 
-    # Define summarizer function
-    def summarize(self, translated_text: str) -> str:
+    # Create the content that will later populate the PDF report
+    def create_report(
+        self,
+        reel_url: str,
+        transcript_path: Path,
+        translated_text: str,
+    ) -> ReportContent:
+        transcript_text = transcript_path.read_text(encoding="utf-8")
+
+        summary = self._generate_summary(translated_text)
+        explanation = self._generate_explanation(translated_text)
+        key_takeaways = self._generate_key_takeaways(translated_text)
+
+        return ReportContent(
+            title="Reel Translation Report",
+            source_url=reel_url,
+            transcript=transcript_text,
+            translation=translated_text,
+            summary=summary,
+            explanation=explanation,
+            key_takeaways=key_takeaways,
+        )
+
+    def _generate_summary(self, translated_text: str) -> str:
         prompt = f"""
-    Summarize and explain the content of the following transcript, in Portuguese from Portugal.
+Summarize the following text in European Portuguese.
+Be concise and clear.
 
-    Transcript:
-    {translated_text}
-    """
+Text:
+{translated_text}
+"""
+        return self.llm_client.generate(prompt)
 
+    def _generate_explanation(self, translated_text: str) -> str:
+        prompt = f"""
+Explain the main ideas of the following text in European Portuguese.
+Make the explanation useful for someone who wants to understand the content deeply.
+
+Text:
+{translated_text}
+"""
+        return self.llm_client.generate(prompt)
+
+    def _generate_key_takeaways(self, translated_text: str) -> str:
+        prompt = f"""
+Extract the key takeaways from the following text in European Portuguese.
+Return each takeaway as a short bullet point.
+
+Text:
+{translated_text}
+"""
         return self.llm_client.generate(prompt)

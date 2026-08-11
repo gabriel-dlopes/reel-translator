@@ -7,7 +7,7 @@ class Transcriber:
         self.output_directory = output_directory
         self.model = WhisperModel("small", device="cpu", compute_type = "int8")
 
-    def transcribe(self, audio_path: Path) -> str:
+    def transcribe(self, audio_path: Path) -> Path:
         # Pre-conditions for transcription to start
         if not audio_path.exists():
             raise FileNotFoundError(f"Audio file does not exist: {audio_path}")

@@ -42,9 +42,13 @@ def main() -> None: # O "-> None" means that the function only execute functions
 
     # Summarize the translation
     summarizer = Summarizer(llm_client)
-    summarized_text = summarizer.summarize(translated_text)
+    report_content = summarizer.create_report(
+        reel_url=reel_url,
+        transcript_path=transcribed_text,
+        translated_text=translated_text,
+    )
 
-    print(f"Summarized text: {summarized_text}")
+    print(f"Summarized text: {report_content}")
 
 
 if __name__ == "__main__":
